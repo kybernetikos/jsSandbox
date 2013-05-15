@@ -105,21 +105,25 @@ var VLQ = (function() {
 				toEncode = array.slice();
 		for (var i = last; i >= 0; --i) {
 			toEncode[i] = toEncode[i] - (this.mostRecentEncodeValue[i] || 0);
+			this.mostRecentEncodeValue[i] = array[i];
 		}
-		this.mostRecentEncodeValue = array;
 		return encode(toEncode);
 	};
 	DeltaCodec.prototype.decode = function(vlqString) {
 		var data = decode(vlqString);
 		for (var i = data.length - 1; i >= 0; --i) {
 			data[i] = (this.mostRecentDecodeValue[i] || 0) + data[i];
+			this.mostRecentDecodeValue[i] = data[i];
 		}
-		this.mostRecentDecodeValue = data;
-		return data.slice();
+		return data;
 	};
 	DeltaCodec.prototype.reset = function() {
 		this.mostRecentDecodeValue = [];
 		this.mostRecentEncodeValue = [];
+	};
+	DeltaCodec.prototype.resetColumn = function(columnNumber) {
+		this.mostRecentDecodeValue[columnNumber] = undefined;
+		this.mostRecentEncodeValue[columnNumber] = undefined;
 	};
 
 	return {
@@ -129,12 +133,6 @@ var VLQ = (function() {
 	};
 })();
 
-// AAgBC = [0, 0, 16, 1]
-// console.log(VLQ.decode("AAgBC"));
-
-console.log(VLQ.encode([0, -100, 0, 16, 1]));
-console.log(VLQ.decode("ApGAgBC"));
-
-var codec = new VLQ.DeltaCodec();
-console.log(codec.encode([1, 2, 3, 4]), codec.encode([10, 0, 3, 4]));
-console.log(codec.decode("CEGI"), codec.decode("SFAA"));
+if (typeof module !== "undefined") {
+	module.exports = VLQ;
+}
