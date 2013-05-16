@@ -1,43 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Using source maps dynamically</title>
+	<title>Dynamic Source Maps</title>
 	<meta charset=utf-8 />
 	<style type="text/css">
+		h1 {
+			font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", Arial, sans-serif;
+		}
 		body {
 			width: 80%;
-			max-width: 960px;
+			max-width: 970px;
 			margin: 0 auto;
-		}
-		textarea {
-			width: 100%;
-			height: 200px;
+			font-family:   Garamond, Georgia, Times, serif;
+			font-size: larger;
+			color: #222;
+			background-color: #ffe;
 		}
 	</style>
-	<script src="coffee-script.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.2/coffee-script.min.js"></script>
+	<script src="codemirror-compressed.js"></script>
+	<link rel="stylesheet" type="text/css" href="codemirror.css">
 </head>
 <body>
-<h1>Using Source Maps Dyanmically</h1>
-<p>There are a lot of pages about source maps online (e.g. <a href="http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/">this one</a>), but almost none of them go into detail on how to decode VLQs,
-so lots of thanks to Peter van der Zee who <a href="http://qfox.nl/weblog/281">wrote it up</a> in enough detail that
-someone who hadn't heard of VLQs before (me) could write a <a href="../vlq/VLQ.js">decoder</a>.</p>
+<h1>Dynamic Source Maps</h1>
+
+<p>There are many pages about source maps online (e.g. <a href="http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/">this one</a>),
+but almost none of them go into detail on how to decode VLQs (the smoosh of characters at the bottom of the source map where
+all the important data is stored), so lots of thanks to Peter van der Zee who <a href="http://qfox.nl/weblog/281">wrote it up</a>
+in enough detail that someone who hadn't heard of VLQs before (me) could write a <a href="../vlq/VLQ.js">decoder</a>.</p>
+
 <p>Anyway, one of circumstances in which you might want to use source maps is to provide nice debugging of code that is
 generated and transpiled to javascript at run time.  Most of the common descriptions of source maps assume that you're
 going to be serving the compiled code, the source map and the original source from some server, but this isn't always
 what you want.</p>
+
 <p>Fortunately, there are a few notes in <a href="https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit?pli=1">the spec</a>
 that show that the authors understood this.  To make source maps work dynamically, you need a combination of two things:
 the ability to attach actual source into the source map which is provided by the optional sourcesContent field of the sourcemap
 and also the ability to attach a source map directly to some code rather than have to have it exist as a file somewhere.
 This is provided by a little note:</p>
+
 <blockquote>Note: &lt;url&gt; maybe a data URI.  Using a data URI along with “sourcesContent” allow for a completely self-contained source-map.</blockquote>
+
 <p>I've used the coffeescript compiler here as an example because it can straightforwardly generate the source map for me.  Then
 I modify the provided source map to include the sourcesContent field, encode the whole thing up as a base64 data uri (I use btoa so
 don't expect this to work in IE), and add the <tt>//@ sourceURL=</tt> directive pointing at the data URI to the end of the generated code.</p>
+
 <p>Then all that remains is to eval the code.</p>
-<p>This works fine in Chrome 29.0.1508.3 canary, but it doesn't work in Firefox 23.0a1 nightly.  It looks like full implementation
-of the latest version of the spec might take a little while to make it into all the browsers.</p>
-<textarea id="code">square = (x) -> x * x
+
+<p>This works fine in Chrome 29.0.1508.3 canary if you have source maps turned on, but it doesn't work in Firefox 24.0a1 nightly.
+It might take a little while to make it into all the common browsers.</p>
+
+<textarea id="code" class="code">square = (x) -> x * x
 cube   = (x) -> square(x) * x
 
 debugger;
@@ -45,6 +59,25 @@ debugger;
 alert cube(5)</textarea>
 
 <button id="compile">Compile and Evaluate</button>
+
+<p>And here's the code that does it:</p>
+<textarea id='exampleCode'>var result = CoffeeScript.compile(code.value, {
+	sourceMap: true,
+	filename: "generated.js"
+});
+
+var source = result.js;
+var srcmap = JSON.parse(result.v3SourceMap);
+
+srcmap.sources[0] = "user entered coffee script"
+srcmap.sourcesContent = [code.value];
+srcmap.file = "js compiled from dynamic coffeescript";
+
+var datauri = 'data:application/json;charset=utf-8;base64,'+btoa(JSON.stringify(srcmap));
+
+source += "\n//@ sourceMappingURL=" + datauri;
+
+eval(source);</textarea>
 
 <script>
 	var code = document.getElementById("code"),
@@ -58,7 +91,6 @@ alert cube(5)</textarea>
 
 		var source = result.js;
 		var srcmap = JSON.parse(result.v3SourceMap);
-		console.log(srcmap, srcmap.sources);
 		srcmap.sources[0] = "user entered coffee script"
 		srcmap.sourcesContent = [code.value];
 		srcmap.file = "js compiled from dynamic coffeescript";
@@ -69,6 +101,19 @@ alert cube(5)</textarea>
 
 		eval(source);
 	};
+
+	CodeMirror.fromTextArea(code, {
+		autoMatchParens: false,
+		lineNumbers: true,
+		mode: "coffeescript",
+		passDelay: 50,
+		tabMode: "shift"
+	});
+	CodeMirror.fromTextArea(document.getElementById('exampleCode'), {
+		mode: "javascript",
+		readOnly: "nocursor"
+	});
 </script>
+
 </body>
 </html>
