@@ -1,0 +1,7 @@
+{
+	"main": "./run.js",
+	"dependencies": {
+		"connect": "2.0.x",
+		"express": "2.x.x"
+	}
+}

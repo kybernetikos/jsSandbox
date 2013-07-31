@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Node Style JS in the Browser</title>
+	<meta charset="utf-8">
+	<script src="ModuleSystem.js"></script>
+
+	<script src="modules/fred.js"></script>
+	<script src="modules/a.js"></script>
+	<script src="modules/b.js"></script>
+	<script src="modules/ns/hello.js"></script>
+	<script src="modules/ns/thing.js"></script>
+</head>
+<body>
+
+<h1>Use node style javascript in the browser.</h1>
+
+<p>A small amount of wrapping of the module objects, combined with a very
+simple piece of javascript defining require.  No build step (although since
+you have to have all the script tags in your document, you might want
+a build step to generate them, or concatenate all the script files together).</p>
+
+<script>
+	var fred = require("fred");
+	console.log(fred.p);
+
+	var a = require('./a');
+	console.log(a.a);
+</script>
+</body>
+</html>
