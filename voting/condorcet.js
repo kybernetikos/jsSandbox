@@ -156,10 +156,12 @@ Preferences.prototype.graph = function() {
 			winRow[loser] = 1;
 			for (j = 0; j < optionsTheLoserBeats.length; ++j) {
 				winRow[optionsTheLoserBeats[j]] = 1;
+                pathMatrix[optionsTheLoserBeats[j]][winner] = -1;
 			}
 			loseRow[winner] = -1;
 			for (j = 0; j < optionsTheWinnerLosesTo.length; ++j) {
 				loseRow[optionsTheWinnerLosesTo[j]] = -1;
+                pathMatrix[optionsTheWinnerLosesTo[j]][loser] = 1;
 			}
 		}
 
@@ -194,7 +196,7 @@ Preferences.prototype.combinedRanking = function() {
 		var group = results[i];
 		if (group !== undefined) {
 			if (group.length === 1) {
-				collapsedResult.push(group[0])
+				collapsedResult.push(group[0]);
 			} else {
 				collapsedResult.push(group);
 			}
@@ -203,20 +205,10 @@ Preferences.prototype.combinedRanking = function() {
 	return collapsedResult;
 };
 
-var pref = new Preferences(["Memphis", "Nashville", "Chattanooga", "Knoxville"]);
-
-pref.vote(42, "Memphis", "Nashville", "Chattanooga");
-pref.vote(26, "Nashville", "Chattanooga", "Knoxville", "Memphis");
-pref.vote(15, "Chattanooga", "Knoxville", "Nashville", "Memphis");
-pref.vote(17, "Knoxville", "Chattanooga", "Nashville", "Memphis");
-
-console.log(pref.graph());
-console.log(pref.combinedRanking());
-
 pref = new Preferences(["A", "B", "C", "X"]);
-pref.registerPreference(68, ["A", "X"], "B");
-pref.registerPreference(72, "B", "C");
-pref.registerPreference(52, "C", ["A", "X"]);
-
+pref.vote(68, ["A", "X"], "B");
+pref.vote(72, "B", "C");
+pref.vote(52, "C", ["A", "X"]);
+pref.vote(1, "X", "C");
 console.log(pref.graph());
 console.log(pref.combinedRanking());
