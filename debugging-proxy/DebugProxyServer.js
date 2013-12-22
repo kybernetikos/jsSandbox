@@ -14,25 +14,30 @@ DebugProxyServer.prototype.start = function() {
 	var proxyPort = this.proxyPort;
 
 	this.proxy = net.createServer(function(incoming) {
-		console.log('Incoming connection from ' + incoming.remoteAddress);
-
-		incoming.on('end', function() {
-			console.log('Incoming connection disconnected.');
-		});
-
-		incoming.on('data', function(data) {
-			console.log(" ");
-			log.in(data);
-		});
+		log.inMsg('Incoming connection from ' + incoming.remoteAddress);
 
 		var outgoing = new net.Socket();
-		outgoing.on('connect', function() {
-			console.log('Outbound connection to '+ remoteServer + " : " + remotePort + " established.");
+
+		incoming.on('data', function(data) {
+			log.in(data);
+		});
+		incoming.on('end', function() {
+			log.inMsg('Incoming connection disconnected.');
+		});
+		incoming.on('error', function(event) {
+			log.inMsg('Error from incoming connection : ' + event.code);
+			outgoing.end();
 		});
 
+		outgoing.on('connect', function() {
+			log.outMsg('Outbound connection to '+ remoteServer + ":" + remotePort + " established.");
+		});
 		outgoing.on('data', function(data) {
-			console.log(" ");
 			log.out(data);
+		});
+		outgoing.on('error', function(event) {
+			log.outMsg('Error from outgoing connection : ', event.code);
+			incoming.end();
 		});
 
 		outgoing.connect(remotePort, remoteServer);
@@ -53,7 +58,7 @@ if (require.main !== module) {
 
 	var remoteHost = "localhost";
 	var remotePort = "15002";
-	var proxyPort = "8124"
+	var proxyPort = "8124";
 
 	if (args.length > 0) {
 		remoteHost = args[0];

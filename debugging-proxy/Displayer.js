@@ -37,6 +37,9 @@ function style(str, style) {
 	return startCodes.join("") + str + endCodes.reverse().join("");
 }
 
+var DEFAULT_LEAD_IN = style(" <", {color: 'blue'});
+var DEFAULT_LEAD_OUT = style(" >", {color: 'magenta'});
+
 function Displayer() {
 	this.lineBytes = [];
 	this.lineTxt = [];
@@ -62,8 +65,8 @@ Displayer.prototype.flush = function(linePrefix) {
 	if (this.lineBytes.length === 0) return;
 	linePrefix = linePrefix || this.lastPrefix;
 	var byteDisplay = pad(this.lineBytes.join(" "), this.lineLength * 3, " ");
-	console.log(" " + linePrefix + " "
-			+ style(byteDisplay, {color: 'white', background: 'cyan'})
+	console.log(linePrefix + " "
+			+ style(byteDisplay, {background: 'cyan'})
 			+ " : "
 			+ this.lineTxt.join(""));
 	this.lineBytes.length = 0;
@@ -78,10 +81,15 @@ Displayer.prototype.writeBuffer = function(linePrefix, buffer) {
 };
 
 Displayer.prototype.in = function(buffer) {
-	this.writeBuffer(style("<", {color: 'blue'}), buffer);
+	this.writeBuffer(DEFAULT_LEAD_IN, buffer);
+};
+Displayer.prototype.inMsg = function(msg) {
+	console.log(DEFAULT_LEAD_IN + " " + msg);
 };
 Displayer.prototype.out = function(buffer) {
-	this.writeBuffer(style(">", {color: 'magenta'}), buffer);
+	this.writeBuffer(DEFAULT_LEAD_OUT, buffer);
 };
-
+Displayer.prototype.outMsg = function(msg) {
+	console.log(DEFAULT_LEAD_OUT + " " + msg);
+};
 module.exports = Displayer;
