@@ -51,7 +51,7 @@ if (require.main !== module) {
 } else {
 	var args = process.argv.slice(2);
 
-	var remoteHost = "adami.caplin.com";
+	var remoteHost = "localhost";
 	var remotePort = "15002";
 	var proxyPort = "8124"
 
